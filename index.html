@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Wandelen">
+<title>Wandelen</title>
+<style>
+  html, body { margin:0; padding:0; height:100%; background:#1b1b1b; color:#fff;
+    font-family:-apple-system, Helvetica, Arial, sans-serif; overflow:hidden;
+    -webkit-user-select:none; user-select:none; -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent; }
+  /* ---------- KEUZESCHERM ---------- */
+  #menu { position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden;
+    padding:2vh 1.5vw; box-sizing:border-box; }
+  h1 { font-size:5vh; font-weight:600; text-align:center; margin:1vh 0 2vh; height:7vh; line-height:7vh; }
+  #tegels { display:-webkit-flex; display:flex; -webkit-flex-wrap:wrap; flex-wrap:wrap;
+    -webkit-justify-content:center; justify-content:center; }
+  .tegel { width:30.5vw; height:26vh; margin:1vh 0.8vw; border-radius:22px; background-color:#333;
+    display:-webkit-flex; display:flex; -webkit-flex-direction:column; flex-direction:column;
+    -webkit-align-items:center; align-items:center; -webkit-justify-content:center; justify-content:center;
+    font-size:34px; font-weight:700; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,.4); }
+  .tegel { background-size:cover; background-position:center; position:relative; overflow:hidden;
+    -webkit-justify-content:flex-end; justify-content:flex-end; -webkit-align-items:stretch; align-items:stretch; }
+  .tegel .label { background:rgba(0,0,0,.6); padding:1.4vh 16px; font-size:3.6vh; text-align:left; }
+  .tegel .label span { font-size:3.8vh; }
+  .tegel.dobbel { background:#3d7a3a; }
+  .tegel.dobbel .groot { -webkit-flex:1; flex:1; display:-webkit-flex; display:flex; -webkit-align-items:center; align-items:center;
+    -webkit-justify-content:center; justify-content:center; font-size:12vh; }
+  .tegel:active { -webkit-transform:scale(.96); transform:scale(.96); opacity:.85; }
+  /* ---------- SPELER ---------- */
+  #speler-scherm { position:absolute; top:0; left:0; right:0; bottom:0; background:#000; display:none; }
+  #speler { position:absolute; top:0; left:0; width:100%; height:100%; }
+  /* Doorzichtige laag: voorkomt dat papa per ongeluk in YouTube zelf belandt */
+  #schild { position:absolute; top:0; left:0; right:0; bottom:0; z-index:5; }
+  #balk { position:absolute; left:0; right:0; bottom:0; z-index:10; padding:20px;
+    display:-webkit-flex; display:flex; -webkit-justify-content:space-between; justify-content:space-between;
+    background:-webkit-linear-gradient(top, rgba(0,0,0,0), rgba(0,0,0,.8));
+    background:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.8));
+    -webkit-transition:opacity .6s; transition:opacity .6s; }
+  #balk.verborgen { opacity:0; pointer-events:none; }
+  .knop { font-size:32px; font-weight:700; padding:22px 38px; border-radius:18px;
+    background:#fff; color:#000; }
+  .knop:active { opacity:.7; }
+  #titel { position:absolute; top:0; left:0; right:0; z-index:10; padding:22px; font-size:30px;
+    font-weight:600; text-align:center;
+    background:-webkit-linear-gradient(bottom, rgba(0,0,0,0), rgba(0,0,0,.7));
+    background:linear-gradient(to top, rgba(0,0,0,0), rgba(0,0,0,.7));
+    -webkit-transition:opacity .6s; transition:opacity .6s; }
+  #titel.verborgen { opacity:0; }
+  #laden { position:absolute; top:50%; left:0; right:0; text-align:center; font-size:30px;
+    margin-top:-20px; z-index:1; color:#aaa; }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <h1>Waar wil je wandelen?</h1>
+  <div id="tegels"></div>
+</div>
+
+<div id="speler-scherm">
+  <div id="laden">Even geduld…</div>
+  <div id="speler"></div>
+  <div id="schild"></div>
+  <div id="titel"></div>
+  <div id="balk">
+    <div class="knop" id="knop-terug">◀ Terug</div>
+    <div class="knop" id="knop-andere">Andere wandeling ▶</div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   INSTELLINGEN — enkel dit stuk aanpassen
+   Video-ID's komen uit de landen-playlists van het kanaal Tourister
+   (youtube.com/@Touristep/playlists), opgehaald 25/11/2026.
+   Per bestemming mag je ook YouTube-links of een playlist-link plakken.
+   ===================================================================== */
+var BESTEMMINGEN = [
+  { naam: "België", icoon: "🇧🇪", videos: ["o81kIRGigPU", "9zDuX_LT8oQ", "uLH0mwHRNbw", "0WQJOFeBNbc", "_q95jjzuUrg", "XI-t51pcV2M", "B6DhO27OwSQ", "iwpDG_l1YyM", "yl1GuJ8SPB4", "vmcxGucaT0E", "9MwiUbN32lI"] },
+  { naam: "Frankrijk", icoon: "🇫🇷", videos: ["gtQ4BFRamxo", "7nR4bkFvNi0", "-LaQvKv_8VE", "r81sYTu7ilw", "ACnz3UC9cMk", "trUIuG01Vp8", "0cX92atTgFU", "o6jtvKlSEu4", "NZ4HjIy5wis", "GRaPzD_xh6A", "PTryUzSZ4xU", "E9lJZ6Zk5oc", "pD7gtGSOqMk", "b0SFLTubBjc", "ZscJ_VGtWVc", "gvKrXztk5gk", "9DK9n4YxF34", "956_s6kawzI", "AjrSdOBN6zc", "a6zYJhwHfDk", "zdLW8JE3ozs", "43ADj_1GYT0", "XJlqfRhoI4I", "aAN8sFWX8Ew", "zf3pCvtRgEU", "1y1ktwjgShA", "NdeFpmVnHf8", "s3BsJSAGKQk", "kmH-qbkzW2Y", "wN62o1LcXDM", "yCssIp2zVG4", "g0CqWmjJHN4", "uNQxyYf_byE", "fAX4o2_tfTE", "bodiBgeKsn8", "rlwwV7ynIhE", "3__TnAhZybM", "C0g1nO5x9kY", "wTvSp09MP9I", "ZiEvdc4foC8", "ZzNRTKaJhW8", "Cqy9NferXy8", "yzfrUOUwYGQ", "jmPEielR2Yc", "68ReDUOcWSA", "eLz7ml1xanY", "eK4vxzx_s7g", "Sz5WxOUZeTU", "PtTtnkEJ-o8", "YPFN4bCgPk0", "CEukbYopuak", "ey9524gvgPs", "HL0hvTwloq8", "IAN5BjehSA4", "pmZ7UKIkNIE", "UNpzuU3H1d0", "qHWxpj56fiA", "KMksHB4ztM4", "9a1slFJFFHY", "8e2v9GPyh_4"] },
+  { naam: "Italië", icoon: "🇮🇹", videos: ["IONzb3sve4M", "GyS60rzjgbA", "5brbpExaDgk", "tlGy4NhF3S0", "NmbupPue_KQ", "GW-4lWO78J8", "fLrHSZXFJlg", "AnBx6_shYSI", "DNCR41AsCy8", "O62OlYiI4co", "l6PEv51P1vM", "PRJY_H1DwtQ", "7xt1BVGGzzw", "OEMcf6TfPOo", "XiydUN1LcMk", "SQOsKedmgPw", "PBYqN-O_GwU", "W4rh5Ia1xh0", "QFXuNcRRiTI", "E8e3Ad7s2Ng", "AM4fy6uVXNU", "ZGZECPkFdYg", "Ax86H1T88rg", "FTjh0KfLs-w", "VRaVs-ZFBVI", "OSSH27aNnQU", "hFW5Eluu-yg", "ZpMKYnoYuGE", "ZxUgQFzwB5Y", "77YnKc_K81M", "zGjIdj31POE", "GvF34iqoHR4", "brVinU_-mgQ", "U-q4LBHk6-w", "hRfdAMF2OHs", "CPoW0VOIdrM", "ktjJZxB_9bY", "f7tES1F5wTQ", "HLbbOuUpN-s", "j5Gcv50LF2k", "YHfbL374vPE", "X7nbch8YxW0", "WkUgwLHRYq0", "RwsEz_kCdu0", "6MsVM6raHwA", "QHAKMSzZqjw", "QRtlah1yjys", "LEYLPdgVWYA", "w4sZUoYy264", "j5po-ZpddyY", "AGvvT-_km8o", "AENx_YI2xoE", "JpwAjZgU3Hw", "scQHe3oUGzY", "ENtj0YrK_Ic", "ttnpk3UpDbk", "KRUtzHibboI", "rntM9goHwkQ", "OWknxs--LSA", "Bgav4sxpIU4"] },
+  { naam: "Spanje", icoon: "🇪🇸", videos: ["hptSHW51fUg", "xcpYVNKs0XA", "xlYBTI7_FOI", "o0A18CbfSUI", "8yD6c5blj-8", "j53thU1DvU8", "znwMDcVaXSo", "drR6ORg2Z3o", "oxJMyH4Hd2c", "YFL5WmEetqg", "rpihBnwNWAg", "lhf9u3dSYOY", "8UgeH5-tNK4", "GaE0HeiqR9g", "Ouh68eATU_U", "WQUlcaAIQX8", "Uh6CgDYK0-M", "39HHRNb6DKg", "81DAjVv2jck", "mmilzx9LEdU", "EL63Fb5DvN0", "qn3_UhLVtCg", "xUfTe8d0UJM", "AdkWedQHnKY", "tzAibKXwDOM", "jZoaUKn04I8", "Cyte-P5U3N4", "Eqod_9LP1XA", "hipjW2URaYA", "CIgYYY7_z00", "nFWeLToNg0g", "NV3QJxREA_o", "590GqLw9pk8", "eguuDItm9e0", "SIlj0xyrQPc", "3B-vElFc9KI", "RWnHCU7sUB4", "1uadxxpsAIo", "Ji9FFLvwN8o", "0qbaDL16nfs", "VH8ntHViI08", "NKjiomY51aI", "Bfa1NTB7u5M", "xnSZN9AB1gA", "Y6gMLZ1zGDc", "yP-ytYh1ACI", "zW7VhJeO0a0", "1C62qgTLV7o", "itZZxkAP7ts", "gwUyNLL8BZc", "MzJkNcarBR0", "0fTQyNC-7zM", "3Y-KFZOQB7w", "67w3pcEI5pQ", "7Fd7tp4fd7E", "4RvEN9_VPRc", "1ARQnOlEAQk", "WflX_3_UGZI", "vv1tymoAvok", "-mTM_pl2-Bc"] },
+  { naam: "Griekenland", icoon: "🇬🇷", videos: ["KsjvbdKlYz8", "8GaxByhp-WI", "sKnheh0PRG0", "-naURkadZ5U", "hfL1ptTmVq0", "sGH9Nu_B5Tw", "lAv2TZ9BmkE", "npqfNC5ll-A", "W12G8e3Kqb4", "Hszp0xDRNjg", "BcmwgHBwNlA", "6GZxzBwlYTE", "tm7xWbz9SYw", "jwN09wZ9D00", "w2zNfj80mEo", "4hyHi_1IXOQ", "yBP9kcoXeTw", "e_gLDj2s4-Q", "oEuGnNfaNtA", "TvkjktlHnXo", "RzWUwUDspzI", "RVPlIjMXQvY", "YbZKorCZFlA", "up5Yxxsv9Qw", "tedgT5F7ygY", "HiwTguGZwZY", "Jz2XEH21EZ4", "6KBs7aS8Jjc", "JjvZ_kHIVbI", "BQjcuO0_ZNw", "JTkz3KgMF4U", "XeRSdygVyzY", "ChEY145Lj2A", "7Zvra5RIKv4", "f9tiX0qF2ns", "FxfEbOd6-aY", "mIsZIPZAvZg", "U_VIBce3qT0", "bjotrgyOuZw", "g4qd5xaI-NI", "1Mh6M4kuPgw", "kNWhDafiGXc", "0oZxSgrkzxU", "d8qfv13cI3k", "V1kA68IuS1Y", "K67k7yEz5eY", "IGP-MVShdWY", "RXsn8N9Rlz8", "PRr7Yx373bI", "YOoa3F9l848", "FJ8PSyqwqTU", "yOM7zaqpq8E", "NC4pSVNQe5s", "r5UJ7zv3Gc4", "bvWuovzRV7E", "67RXft_MpxU", "Zredn5TAcYw", "eFVeb_iALD4", "RBGOeyxFS7E", "41FOuEwTJEQ"] },
+  { naam: "Oostenrijk", icoon: "🇦🇹", videos: ["5NzNBhS-uBM", "1buOn3MvGsg", "YDzWVVFOt6g", "4zuwFfbtfcQ", "xzQpflfi6sY", "L-Kyu6D6nxc", "UZbUXFpKYCo", "PuK1J7RGjwQ", "2RJUP9NPbKw", "lOQNQirDqZw", "41G8TP6fMxw", "AyIRug0Jha8", "LvN6vviRwt8", "zdMDsWEh7v4", "nrIMtEnijf0", "1-XAml4iWXI", "hH7hOWp-Jno", "b0zVXSZyEdc", "kdbc5g_KCLc", "pU7IQDEMs-g", "P5oYtWDb8FM"] },
+  { naam: "Engeland", icoon: "🇬🇧", videos: ["o77jMwt32G0", "P6Pwc0LOXks", "vsIAO0l98l8", "jeqyysedrNE", "xP2V9m_haAQ", "umnqQv-obpE", "rtRU-P-rYyQ", "c4iGpFHPe80", "lIAehKc6_XI", "OoHNALG84LE", "kcuVzENkp3I", "JYyPV9ZGV2I", "4e6SezE8E5M", "c20KOtDlq5g", "MJmMwOnTZvw", "iFCX7c4Mh9w", "dODUWFLSFFY", "6GwaErfZmfI", "nS3ZiRBL934", "B9C1joyCBqo", "acn3oX7FSLQ", "y0gh9wkaFC4", "1XJ2VwInrg4", "uB5b9wTbyjw", "Jdinti6N1FM", "qFvYWJJmqM8", "Cb5NteQrnn8", "nxaiWPWpC3E", "rrZgD0gjBTc", "-LAVc43uGU4", "dYa7rP6_JAE", "HsvpSj6C1jc", "WmgmaBfJO6k", "U7_8q_mySPU", "bJN7__Ab_J0", "GMoSmVlNk0U", "pqto6ZW4mkc", "N3M-7ZPjpzY", "EpddH3zu8Kk", "dYVoyjSHoX0", "Uvp7hU0es8Y", "MX3y4b4VN5Q", "Kt1meTz8hEU", "wxC31_DPZB0", "MM4GfAwSb4I", "DmNqezkbb10", "dTPnayzigYg", "sZs61Jmqtj4", "cRiLYCtXOr4", "i8RUx0lA4Kk", "oq0PKB950p0", "Z0zNhbN84l4", "w3d2bBemcK0", "dNvc4gjsn70", "V4J_iipRiP0", "HRIdnODVfsk", "ePQzA8v6ka0", "D8lT2NzXkTc", "D6M4ZIbmgqs", "BEt5ld_Eflk"] },
+  { naam: "Kerstmarkten", icoon: "🎄", videos: ["4zuwFfbtfcQ", "K7RbT-Lgy8U", "jmPEielR2Yc", "Z0zNhbN84l4", "cjNnRDa6-nc", "aOi1kCKR4L8", "5zmrrZQu1SM", "dODUWFLSFFY", "fXOSB7B3jG8", "bt-itwAOaFk", "eLz7ml1xanY", "1buOn3MvGsg", "yzfrUOUwYGQ", "ZM6YHdPXWeY", "TyHiVor49NQ", "a6zYJhwHfDk", "AjrSdOBN6zc", "Y7ju1wVGjg8", "T2LvNvUIcOc", "2hGsJxhT9-U", "43ADj_1GYT0", "68ReDUOcWSA", "K7jv4HHJ97E", "XrdlBGq8eUE", "dNvc4gjsn70", "jfYDM31qP1c", "zf3pCvtRgEU"] },
+  { naam: "Verrassing", icoon: "🎲", foto: "dobbel", videos: "ALLES" },
+  { verborgen: true, naam: "Nederland", icoon: "🇳🇱", videos: ["lvjHOTfbPCo", "v0xGw1gulQ8", "P3sAYQ8apSI"] },
+  { verborgen: true, naam: "Duitsland", icoon: "🇩🇪", videos: ["lVimERLDMa8", "SBIST_TTAHg", "udbM4ncdcEU"] },
+  { verborgen: true, naam: "Luxemburg", icoon: "🇱🇺", videos: ["943Q1PJdQ4s"] },
+  { verborgen: true, naam: "Portugal", icoon: "🇵🇹", videos: ["-vDgWvpkK8w", "XivP2rSBzwk", "Wt3oAgHX-ik", "GCw8mmvErO4", "CJYUB8T9RSY", "PXB_2Ok5JYM"] },
+  { verborgen: true, naam: "Ierland", icoon: "🇮🇪", videos: ["HFs10lLSWHc", "YpX8dSNKALc", "0L-oWM_jX-I", "Ps2WpXUVaYQ", "2xGOPO65kWk"] },
+  { verborgen: true, naam: "Noorwegen", icoon: "🇳🇴", videos: ["OWMo1ZJCiDU", "OTHt8gnMzPc", "wmqyz3qLdB8", "XSGromFUklc", "Is98YfXCkDM", "PFDJP8KNBUA", "S_E-TfgrWeI", "xlsQfw_S3DQ", "LjXkR_Q0yOc", "wMWLBrpkN68", "YNR9z637o0Q", "z9wAMhRY0jc", "nPAmG9Z0OOg", "AlHWEUaVBpc", "LYSMu_Vm-Nw", "enEfZafy-A4", "uPz9vy4WAAo", "YzW25o1JegI", "IfmacPB3CY0", "iljkWKhkQ9U", "iNJxCOaDThw", "VTH1n7FI0Ho", "SYdq43y6fao", "nr3HUVWw0WI", "h4VA53u1F6k", "x1ayhJGR-Xk", "zI7XciP5byI", "7i3MVhRPiD0", "_1VEc40ZulY", "kPRTnhemT94", "TD6rh0LtWQI", "NxH3MC-aGIs", "Shhx-AvJWfA", "pj3noIC1G7c", "0MDEVFk_UpM", "1hVwxw_DRsY", "60g5k3ZpZSQ", "UESsFgnk7e8", "3enJ8lJhr7c", "dC6g_Pt-3vI", "9rYXlmjTMcE", "Ksx8Q5PKXHM", "1V9u8OqvhmU"] },
+  { verborgen: true, naam: "Denemarken", icoon: "🇩🇰", videos: ["wpbfe7uKOqE", "nAwcLLAEsBs"] },
+  { verborgen: true, naam: "Zweden", icoon: "🇸🇪", videos: ["zYITbWc748s"] },
+  { verborgen: true, naam: "Tsjechië", icoon: "🇨🇿", videos: ["95BQVS1K9p4", "yryRppBwFD4", "4xCA4iRzkoA", "Xu7o7yYvixQ", "06zpx7hN8D4", "plcqwyljRR8", "DhyY3Wh3J-8", "q5N2Y49IT8A", "swCvHyZuHDk", "x1y5W77jmzc", "ZOPpQ7X7jUY", "z_0BCQhUP9I", "oCV8bbM9hk0", "BGRhCDKz6lQ"] },
+  { verborgen: true, naam: "Hongarije", icoon: "🇭🇺", videos: ["y4c-UmQhpIA", "4pBGgSTTb_Q", "cKQBziQU9jY", "haFS8I4GhMQ", "AyK9ZlmIdeU", "Tqv-bG44IrQ", "XG1mFLD3zr8", "Yn90CRMo5-0", "XWugUrIPaaM", "ZBeYVtvSq14", "t432mY3nRxM", "GsMEpdMXLJM", "Y7ju1wVGjg8", "ZM6YHdPXWeY", "TyHiVor49NQ", "aBx7J5Fr5WY", "lTGhqBgfhI8", "fUcpnM7TlDc", "sBUWZBnLj7U", "TZ4NfDvnI-8", "OAB6kQq-AlU", "4-lDzXiZ6pM", "XJDVn1WZRSw", "GCXgb09KneQ", "yrnKwgAdhAc", "cTYEFtMXxDM", "iNCNX3VKVQM", "-QV7fAiowUo", "qvD-sKBcQHQ", "cgPX_rBF-wo", "1D5RlY6lC5I", "e7enJw4R-hA", "vRs34m05JNw", "HqY1IX7miDM", "LZ7YR_LrldE", "Au2oVlsM0JI", "O8k_1GNV08M", "GqYHyytwbvc", "0xqK3Sgc72A", "p0NcwnkjvKg", "W3lQXP1TBjg"] },
+  { verborgen: true, naam: "Polen", icoon: "🇵🇱", videos: ["ikm-5b8Cr4k", "Qb-qf-KIUdc", "TZFzp24dl8A", "yqv0YapdGBY", "GG387_OLDF4", "ZlfOqw8jqaU", "HUqAIKETSow", "Qzj9HgWAQG0", "kWUw6_CKOco", "E1wX8CkRTTk"] },
+  { verborgen: true, naam: "Slowakije", icoon: "🇸🇰", videos: ["jFzHvpivNrQ", "jPx8Wgn9dOc"] },
+  { verborgen: true, naam: "Kroatië", icoon: "🇭🇷", videos: ["YU2KjCTFdVM", "5WoNFSoqU4k", "jmyrJEIe-As", "ChqsRt9L2OM", "Qf5HhL_1awE", "gU1H98Pf3jQ", "rOPqUAG0Y4A"] },
+  { verborgen: true, naam: "Malta", icoon: "🇲🇹", videos: ["hfGTjEeTPKk", "uOLrr5gdAkE", "99ZaUCsqsiI", "6vGwpUYYtSY", "81xfw6Ystmk", "1Kkx3FOfyK8", "ZNt0oVhfHEI", "KPV1hFJIXrg"] },
+  { verborgen: true, naam: "Monaco", icoon: "🇲🇨", videos: ["0KiFXUMJWi4", "fOKzDgTrGXU", "H53BlGZlgGY", "twpZ5APxBO0", "IJWD1zo1bqI", "B5hl8b-I2vU", "Aa7mo8fxdvQ", "8vb4GppHixY", "qgOcj67nlB8", "hPnAFRtvkqw", "NL1mK3ZFvDk", "kn9St-m4Kxs", "zqIfvmWJDwk", "2vx3utqzZ1I", "thsjXt8Piyo", "_BINs2ZmWaQ"] },
+  { verborgen: true, naam: "Roemenië", icoon: "🇷🇴", videos: ["VdII8wXtJ00", "uYe8kmLINsI", "tKi-OVSbEPI", "wnT4p_kxLRM", "5AltfZQv2UE"] },
+  { verborgen: true, naam: "Albanië", icoon: "🇦🇱", videos: ["LZP7ylafsk8", "lkjKqVtOvJs"] },
+  { verborgen: true, naam: "Turkije", icoon: "🇹🇷", videos: ["-EF9Cu2rD7g"] },
+  { verborgen: true, naam: "Japan", icoon: "🇯🇵", videos: ["1VDWzAgNzUs", "a2gfO60JchM", "p6CgWQcxazo", "1tMK8bTHMY4", "vPy-P8PwQXE", "9A3PcR13z2I", "S_M50bllQ_w", "MkdsvjGZv7U", "zRhYnTnJ3fI", "ggshbKlKsQE", "KloB_5r_HKM", "yHszHGUsg48", "zUzLSpMOX58", "3BlVz4Rrj5k"] }
+];
+var BALK_VERBERGEN_NA = 6;   // seconden voor knoppen verdwijnen
+/* ===================================================================== */
+
+var speler = null, spelerKlaar = false, huidige = null, lijst = [], positie = 0, verbergTimer = null;
+
+function haalId(s) {
+  s = String(s).trim();
+  var m = s.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  if (m && s.indexOf("v=") === -1 && s.indexOf("youtu.be") === -1) return { playlist: m[1] };
+  m = s.match(/(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([A-Za-z0-9_-]{11})/);
+  if (m) return { video: m[1] };
+  if (/^(PL|UU|OL)[A-Za-z0-9_-]+$/.test(s)) return { playlist: s };
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return { video: s };
+  return null;
+}
+function schud(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+function bouwLijst(b) {
+  var bron = b.videos, uit = [];
+  if (bron === "ALLES") { bron = []; for (var i = 0; i < BESTEMMINGEN.length; i++) if (BESTEMMINGEN[i].videos !== "ALLES") bron = bron.concat(BESTEMMINGEN[i].videos); }
+  for (var k = 0; k < bron.length; k++) { var id = haalId(bron[k]); if (id) uit.push(id); }
+  return schud(uit);
+}
+
+/* --- keuzescherm --- */
+var tegels = document.getElementById("tegels");
+for (var i = 0; i < BESTEMMINGEN.length; i++) (function (b) {
+  if (b.verborgen) return;
+  var d = document.createElement("div");
+  d.className = "tegel";
+  var foto = (b.videos === "ALLES") ? null : haalId(b.videos[0]);
+  if (foto && foto.video) d.style.backgroundImage = "url(https://i.ytimg.com/vi/" + foto.video + "/hqdefault.jpg)";
+  if (b.foto === "dobbel") { d.className = "tegel dobbel"; d.innerHTML = "<div class='groot'>🎲</div><div class='label'>Verrassing</div>"; }
+  else d.innerHTML = "<div class='label'><span>" + b.icoon + "</span> " + b.naam + "</div>";
+  d.addEventListener("click", function () { start(b); });
+  tegels.appendChild(d);
+})(BESTEMMINGEN[i]);
+
+/* --- YouTube-speler --- */
+var tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+window.onYouTubeIframeAPIReady = function () {
+  speler = new YT.Player("speler", {
+    width: "100%", height: "100%",
+    playerVars: { autoplay: 0, controls: 0, rel: 0, modestbranding: 1, playsinline: 1,
+                  iv_load_policy: 3, fs: 0, disablekb: 1, cc_load_policy: 0, hl: "nl" },
+    events: {
+      onReady: function () { spelerKlaar = true; },
+      onStateChange: function (e) {
+        if (e.data === YT.PlayerState.PLAYING) document.getElementById("laden").style.display = "none";
+        if (e.data === YT.PlayerState.ENDED) volgende();           // automatisch verder
+      },
+      onError: function () { setTimeout(volgende, 1500); }           // video niet insluitbaar → overslaan
+    }
+  });
+};
+
+function speel(item) {
+  document.getElementById("laden").style.display = "block";
+  if (item.playlist) speler.loadPlaylist({ listType: "playlist", list: item.playlist, index: 0 });
+  else speler.loadVideoById(item.video);
+  // playlist: willekeurige volgorde + herhalen
+  if (item.playlist) setTimeout(function () { try { speler.setShuffle(true); speler.setLoop(true); speler.playVideoAt(0); } catch (e) {} }, 1500);
+}
+function volgende() {
+  if (!lijst.length) return;
+  if (lijst[positie] && lijst[positie].playlist) { try { speler.nextVideo(); return; } catch (e) {} }
+  positie = (positie + 1) % lijst.length;
+  speel(lijst[positie]);
+}
+
+function start(b) {
+  lijst = bouwLijst(b); positie = 0; huidige = b;
+  if (!lijst.length) { alertZacht("Voor " + b.naam + " zijn nog geen video's ingesteld."); return; }
+  if (!spelerKlaar) { alertZacht("Even geduld, de speler laadt nog…"); return; }
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("speler-scherm").style.display = "block";
+  document.getElementById("titel").innerHTML = b.icoon + " " + b.naam;
+  speel(lijst[0]);
+  toonBalk();
+}
+function terug() {
+  try { speler.stopVideo(); } catch (e) {}
+  document.getElementById("speler-scherm").style.display = "none";
+  document.getElementById("menu").style.display = "block";
+}
+function toonBalk() {
+  document.getElementById("balk").className = "";
+  document.getElementById("titel").className = "";
+  clearTimeout(verbergTimer);
+  verbergTimer = setTimeout(function () {
+    document.getElementById("balk").className = "verborgen";
+    document.getElementById("titel").className = "verborgen";
+  }, BALK_VERBERGEN_NA * 1000);
+}
+function alertZacht(t) {
+  var h = document.querySelector("h1"), oud = "Waar wil je wandelen?";
+  h.innerHTML = t; setTimeout(function () { h.innerHTML = oud; }, 3000);
+}
+
+document.getElementById("schild").addEventListener("click", toonBalk);
+document.getElementById("knop-terug").addEventListener("click", terug);
+document.getElementById("knop-andere").addEventListener("click", function () { volgende(); toonBalk(); });
+</script>
+</body>
+</html>
